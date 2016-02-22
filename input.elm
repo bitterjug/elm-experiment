@@ -1,5 +1,5 @@
 import Html exposing (..)
-import Html.Events exposing (onClick, on, targetValue)
+import Html.Events exposing (onClick, on, targetValue, onKeyPress)
 import Html.Attributes exposing (..)
 import Signal exposing (Address)
 import StartApp.Simple as StartApp
@@ -42,8 +42,11 @@ view address model =
       , name model.name
       , autofocus True
       , on "input" targetValue (Signal.message address << UpdateInput)
+      , onKeyPress address (\code -> if code == 13 then Latch else NoOp)
       ] [],
-      div [] [ text <| "Debug: " ++ model.input ]
+      div [] [ 
+        text <| "Debug input: " ++ model.input ++ " value:" ++ model.value
+      ]
     ]
 
 -- Action
@@ -51,6 +54,7 @@ view address model =
 type Action 
   = NoOp 
   | UpdateInput String
+  | Latch
 
 
 update : Action -> Model -> Model
@@ -58,3 +62,4 @@ update action model =
   case action of
     NoOp -> model
     UpdateInput s -> { model | input = s }
+    Latch -> { model | value = model.input, input = "" }
