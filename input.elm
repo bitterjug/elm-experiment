@@ -1,6 +1,7 @@
 import Html exposing (..)
-import Html.Events exposing (onClick, on, targetValue, onKeyPress)
+import Html.Events exposing (onClick, on, targetValue, onKeyPress, keyCode)
 import Html.Attributes exposing (..)
+import Json.Decode as Json
 import Signal exposing (Address)
 import StartApp.Simple as StartApp
 
@@ -31,6 +32,19 @@ initModel name =
 
 -- View
 
+onEnter : Address Action -> Action -> Attribute
+onEnter address action =
+  on "keydown"
+    (Json.customDecoder keyCode is13)
+    (\_ -> Signal.message address action)
+
+
+is13 : Int -> Result String ()
+is13 code = 
+  if code == 13 then Ok () else Err "Some other code" 
+  -- customDecoder requires the result to be `Result String b`
+  -- othrerwise we could just unit for both success and failure hre
+
 
 view : Address Action -> Model -> Html
 view address model =
@@ -42,7 +56,7 @@ view address model =
       , name model.name
       , autofocus True
       , on "input" targetValue (Signal.message address << UpdateInput)
-      , onKeyPress address (\code -> if code == 13 then Latch else NoOp)
+      , onEnter address Latch
       ] [],
       div [] [ 
         text <| "Debug input: " ++ model.input ++ " value:" ++ model.value
