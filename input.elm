@@ -5,6 +5,8 @@ import Json.Decode as Json
 import Signal exposing (Address)
 import StartApp.Simple as StartApp
 
+import Debug exposing (log)
+
 -- TODO: Enter -> latch input in value, Escape -> Discard input, display value
 
 
@@ -32,18 +34,23 @@ initModel name =
 
 -- View
 
-onEnter : Address Action -> Action -> Attribute
-onEnter address action =
+type alias KeyMatch = Int -> Result String ()
+
+isKey : Int -> KeyMatch
+isKey target = 
+  \ code -> log (toString target ++ "==" ++ (toString code) ) (if code == target then Ok () else Err "Some other code")
+
+enter : KeyMatch
+enter = isKey 13
+
+escape : KeyMatch
+escape = isKey 27
+
+onKey : KeyMatch -> Address Action -> Action -> Attribute
+onKey keyMatch address action =
   on "keydown"
-    (Json.customDecoder keyCode is13)
+    (Json.customDecoder keyCode keyMatch)
     (\_ -> Signal.message address action)
-
-
-is13 : Int -> Result String ()
-is13 code = 
-  if code == 13 then Ok () else Err "Some other code" 
-  -- customDecoder requires the result to be `Result String b`
-  -- othrerwise we could just unit for both success and failure hre
 
 
 view : Address Action -> Model -> Html
@@ -56,10 +63,13 @@ view address model =
       , name model.name
       , autofocus True
       , on "input" targetValue (Signal.message address << UpdateInput)
-      , onEnter address Latch
+      , onKey enter address Latch
+      , onKey escape address Reset
       ] [],
       div [] [ 
-        text <| "Debug input: " ++ model.input ++ " value:" ++ model.value
+        text <| "Debug input: " ++ model.input,
+        br [][],
+        text <| " value:" ++ model.value
       ]
     ]
 
@@ -69,6 +79,7 @@ type Action
   = NoOp 
   | UpdateInput String
   | Latch
+  | Reset
 
 
 update : Action -> Model -> Model
@@ -77,3 +88,4 @@ update action model =
     NoOp -> model
     UpdateInput s -> { model | input = s }
     Latch -> { model | value = model.input, input = "" }
+    Reset -> { model | input = model.value }
