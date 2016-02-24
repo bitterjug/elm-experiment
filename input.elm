@@ -1,3 +1,4 @@
+import Dict
 import Html exposing (..)
 import Html.Events exposing (onClick, on, targetValue, onKeyPress, keyCode)
 import Html.Attributes exposing (..)
@@ -5,7 +6,6 @@ import Json.Decode as Json
 import Signal exposing (Address)
 import StartApp.Simple as StartApp
 
-import Debug exposing (log)
 
 -- TODO: Enter -> latch input in value, Escape -> Discard input, display value
 
@@ -34,23 +34,26 @@ initModel name =
 
 -- View
 
-type alias KeyMatch = Int -> Result String ()
+enter = 13
+escape = 27
 
-isKey : Int -> KeyMatch
-isKey target = 
-  \ code -> log (toString target ++ "==" ++ (toString code) ) (if code == target then Ok () else Err "Some other code")
+type alias KeyMap = Dict.Dict Int Action
 
-enter : KeyMatch
-enter = isKey 13
+keys : KeyMap
+keys = Dict.fromList 
+  [ (enter, Latch)
+  , (escape, Reset)
+  ]
 
-escape : KeyMatch
-escape = isKey 27
+keyMatch : KeyMap -> Int -> Result String Action
+keyMatch keymap code = 
+  Result.fromMaybe "Unrecognised key" (Dict.get code keymap)
 
-onKey : KeyMatch -> Address Action -> Action -> Attribute
-onKey keyMatch address action =
+onKey : KeyMap -> Address Action -> Attribute
+onKey keymap address =
   on "keydown"
-    (Json.customDecoder keyCode keyMatch)
-    (\_ -> Signal.message address action)
+    (Json.customDecoder keyCode (keyMatch keymap))
+    (\action -> Signal.message address action)
 
 
 view : Address Action -> Model -> Html
@@ -63,8 +66,7 @@ view address model =
       , name model.name
       , autofocus True
       , on "input" targetValue (Signal.message address << UpdateInput)
-      , onKey enter address Latch
-      , onKey escape address Reset
+      , onKey keys address
       ] [],
       div [] [ 
         text <| "Debug input: " ++ model.input,
