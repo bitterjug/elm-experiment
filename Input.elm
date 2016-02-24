@@ -1,21 +1,13 @@
+module Input where
+
 import Dict
 import Html exposing (..)
 import Html.Events exposing (onClick, on, targetValue, onKeyPress, keyCode)
 import Html.Attributes exposing (..)
 import Json.Decode as Json
 import Signal exposing (Address)
-import StartApp.Simple as StartApp
 
 
--- TODO: Enter -> latch input in value, Escape -> Discard input, display value
-
-
-main =
-  StartApp.start 
-    { model = initModel "Objective" 
-    , view = view
-    , update = update 
-    }
 
 -- Model
 
@@ -56,24 +48,33 @@ onKey keymap address =
     (\action -> Signal.message address action)
 
 
+
 view : Address Action -> Model -> Html
 view address model =
-  div []
-    [ input
-      [ type' "text"
-      , placeholder model.name
-      , value model.input
-      , name model.name
-      , autofocus True
-      , on "input" targetValue (Signal.message address << UpdateInput)
-      , onKey keys address
-      ] [],
-      div [] [ 
-        text <| "Debug input: " ++ model.input,
-        br [][],
-        text <| " value:" ++ model.value
+  let 
+    highlightStyle = 
+      style <|
+        if model.input == model.value 
+        then [] 
+        else [("background-color", "yellow")]
+  in
+    div []
+      [ input
+        [ type' "text"
+        , highlightStyle
+        , placeholder model.name
+        , value model.input
+        , name model.name
+        , autofocus True
+        , on "input" targetValue (Signal.message address << UpdateInput)
+        , onKey keys address
+        ] []
+      , div [] [ 
+          text <| "Debug input: " ++ model.input,
+          br [][],
+          text <| " value:" ++ model.value
+        ]
       ]
-    ]
 
 -- Action
 
@@ -89,5 +90,5 @@ update action model =
   case action of
     NoOp -> model
     UpdateInput s -> { model | input = s }
-    Latch -> { model | value = model.input, input = "" }
+    Latch -> { model | value = model.input }
     Reset -> { model | input = model.value }
