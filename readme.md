@@ -15,3 +15,8 @@ Other stuff we had in Kashana include:
 - lists with a placeholder item 
 - some of the placeholder details are inactive until it is created
 
+Let's have a go at a 2 Input widget.
+
+- [ ] Make the input into a module
+- [ ] Follow [example 2](https://github.com/evancz/elm-architecture-tutorial/blob/master/examples/2/CounterPair.elm)
+
