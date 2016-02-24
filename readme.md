@@ -17,6 +17,11 @@ Other stuff we had in Kashana include:
 
 Let's have a go at a 2 Input widget.
 
-- [ ] Make the input into a module
-- [ ] Follow [example 2](https://github.com/evancz/elm-architecture-tutorial/blob/master/examples/2/CounterPair.elm)
+- [x] Make the input into a module
+- [x] Follow [example 2](https://github.com/evancz/elm-architecture-tutorial/blob/master/examples/2/CounterPair.elm)
 
+
+There needs to be some feedback that we have unsaved changes
+
+- [ ] Put a class on an input while its input value is different from its
+  stored value.
