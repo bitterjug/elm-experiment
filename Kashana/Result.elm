@@ -1,19 +1,22 @@
 module Kashana.Result where
+
 import Input
 import Html exposing (..)
 import Signal exposing (Address)
+
 
 -- Model
 
 
 type alias Model =
-  { id : Int
+  { id : Maybe Int
   , name : Input.Model
   , description : Input.Model
   }
 
+
 initModel = 
-  { id = 0
+  { id = Nothing
   , name =  Input.initModel "Name"
   , description =  Input.initModel "Description"
   }
@@ -31,14 +34,12 @@ view address model =
 -- Action
 
 type Action
-   = NoOp
-   | Name Input.Action
+   = Name Input.Action
    | Description Input.Action
 
 
 update : Action -> Model -> Model
 update action model = 
   case action of
-    NoOp -> model
     Name act ->        { model | name        = Input.update act model.name }
     Description act -> { model | description = Input.update act model.description }
