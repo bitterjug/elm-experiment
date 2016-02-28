@@ -44,3 +44,95 @@ where we get back the id from the server on update, and it's all part of one
 bundle of json. But who says I have to store it in one record like that?
 
 
+# Blog
+
+I'm teaching myself [Elm](http://elm-lang.org/) and its awesome.  Although only
+a few hours in, I've learned a lot about Elm and an important meta-lesson about
+programming.  
+
+As a project, I'm re-creating some UI components I made Javascript for
+[Kashana](http://www.kashana.org/). _Results_ have a name and description, which 
+are input fields:
+
+``` elm
+type alias Result =
+  { id : Maybe Int
+  , name : Input.Model
+  , description : Input.Model
+  }
+```
+
+I gave them an optional `id` because we display a placeholder at the bottom of a
+list of _Results_ where you create new ones by entering either name or description.
+In Kashana these get sent to the server which creates a new _Result_ in the database
+and sends back the corresponding JSON, including the `id` (primary key). My Elm
+project has no server (yet) so I'm storing `nextId` to fake object creation:
+
+``` elm
+type alias ResultList = 
+  { results : List Result
+  , placeholder : Result
+  , nextId : Int
+  }
+```
+
+Now, here's the problem: I use the `id` to route actions, as per the
+[Elm Architecture](https://github.com/evancz/elm-architecture-tutorial):
+
+``` elm
+update action model =
+  case action of
+    ...
+    Update id acttion ->
+      let updateResult result = 
+          if result.id == id
+            then Res.update action result
+            else result
+      in { model | results = List.map updateResult model.results }
+```
+
+But, of course, this doesn't type check. Elm-make says:
+
+
+```
+Function `update` is expecting the 2nd argument to be:
+
+    { ..., id : Maybe Int }
+
+But it is:
+
+    { ..., id : Int }
+```
+
+I don't want to deal with the `Nothing` case for `id` here because my design
+includes an implicit invariant that _Results_ in the list always have an `id`;
+only the placeholder has `Nothing`.  
+
+But Elm doesn't know about that invariant.  And it checks my case statements at
+compile time and complains if I haven't handled all the options as defined by
+union types. Which means I can't simply ignore the `Nothing` case of `id: Maybe
+Int` when I know the invariant holds (I don't remember Haskell being that
+strict).  Elm wants me to [banish the
+null](http://elm-lang.org/guide/model-the-problem#banishing-null) `id` from my
+code.  So how might this look if I model the problem in a way that makes my
+invariant explicit? Remove `id` from the _Result_ record and include it only in
+the list of _Results_:
+
+``` elm
+type alias Result =
+  { name : Input.Model
+  , description : Input.Model
+  }
+
+type alias ResultList = 
+  { results : List (Int,  Result)
+  , placeholder : Result
+  , nextId : Int
+  }
+```
+
+At first I felt this was a bit odd; I'm accustomed to having `id` fields as
+part of my objects but this, I suspect, is mainly due to working with object
+relational mappers which add Integer primary keys to object by default. 
+
+

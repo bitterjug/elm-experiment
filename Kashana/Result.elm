@@ -9,15 +9,13 @@ import Signal exposing (Address)
 
 
 type alias Model =
-  { id : Maybe Int
-  , name : Input.Model
+  { name : Input.Model
   , description : Input.Model
   }
 
 
 initModel = 
-  { id = Nothing
-  , name =  Input.initModel "Name"
+  { name =  Input.initModel "Name"
   , description =  Input.initModel "Description"
   }
 

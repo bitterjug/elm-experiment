@@ -7,10 +7,12 @@ import Kashana.Result as Res
 
 -- Model
 
+type alias ID = Int
+
 type alias Model = 
-  { results : List Res.Model
+  { results : List (ID, Res.Model)
   , placeholder : Res.Model
-  , nextId : Int
+  , nextId : ID
   }
 
 
@@ -23,20 +25,19 @@ initModel =
 
 -- View
 
-viewResult : Signal.Address Action -> Res.Model -> Html
-viewResult address result = 
-  li [] [
-    Res.view (Signal.forwardTo address <| Update result.id) result
-  ]
+viewResult : Signal.Address Action -> (ID, Res.Model) -> Html
+viewResult address (id, result) = 
+  Res.view (Signal.forwardTo address (Update id)) result
 
 
 view  : Address Action -> Model -> Html
 view address model = 
-  let 
-      results = model.results ++ [ model.placeholder ]
-      resultItems = List.map (viewResult address) results
+  let
+      results = List.map (viewResult address) model.results
+      placeholder = Res.view (Signal.forwardTo address Create) model.placeholder
+      itemify el = li [] [ el ]
   in
-      ul [] resultItems
+      ul [] (List.map itemify <| results ++ [ placeholder ])
     
 -- Action
 
@@ -52,9 +53,8 @@ update action model =
     NoOp -> model
     Create act -> { model | placeholder = Res.update act model.placeholder }
     Update id act -> 
-      let updateResult res = 
-          if res.id == id
-            then Res.update act res
-            else res
-      in 
-          { model | results = List.map updateResult model.results }
+      let updateResult (resId, result) = 
+          if resId == id
+            then (resId, Res.update act result)
+            else (resId, result)
+      in { model | results = List.map updateResult model.results }
