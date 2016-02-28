@@ -1,4 +1,4 @@
-module Input where
+module Input (..) where
 
 import Dict
 import Html exposing (..)
@@ -8,78 +8,105 @@ import Json.Decode as Json
 import Signal exposing (Address)
 
 
-
 -- Model
 
+
 type alias Model =
-  { name: String  -- name, used for placeholder
-  , value: String  -- current stored vale
-  , input: String  -- new value being entered
+  { name :
+      String
+      -- name, used for placeholder
+  , value :
+      String
+      -- current stored vale
+  , input :
+      String
+      -- new value being entered
   }
 
+
 initModel : String -> Model
-initModel name = 
+initModel name =
   { name = name
   , value = ""
   , input = ""
-  }  
+  }
+
+
 
 -- View
 
-enter = 13
-escape = 27
 
-type alias KeyMap = Dict.Dict Int Action
+enter =
+  13
+
+
+escape =
+  27
+
+
+type alias KeyMap =
+  Dict.Dict Int Action
+
 
 keys : KeyMap
-keys = Dict.fromList 
-  [ (enter, Latch)
-  , (escape, Reset)
-  ]
+keys =
+  Dict.fromList
+    [ ( enter, Latch )
+    , ( escape, Reset )
+    ]
+
 
 keyMatch : KeyMap -> Int -> Result String Action
-keyMatch keymap code = 
+keyMatch keymap code =
   Result.fromMaybe "Unrecognised key" (Dict.get code keymap)
+
 
 onKey : KeyMap -> Address Action -> Attribute
 onKey keymap address =
-  on "keydown"
+  on
+    "keydown"
     (Json.customDecoder keyCode (keyMatch keymap))
     (\action -> Signal.message address action)
 
 
-
 view : Address Action -> Model -> Html
 view address model =
-  let 
-    highlightStyle = 
-      style <|
-        if model.input == model.value 
-        then [] 
-        else [("background-color", "yellow")]
+  let
+    highlightStyle =
+      style
+        <| if model.input == model.value then
+            []
+           else
+            [ ( "background-color", "yellow" ) ]
   in
-    div []
+    div
+      []
       [ input
-        [ type' "text"
-        , highlightStyle
-        , placeholder model.name
-        , value model.input
-        , name model.name
-        , autofocus True
-        , on "input" targetValue (Signal.message address << UpdateInput)
-        , onKey keys address
-        ] []
-      , div [] [ 
-          text <| "Debug input: " ++ model.input,
-          br [][],
-          text <| " value:" ++ model.value
-        ]
+          [ type' "text"
+          , highlightStyle
+          , placeholder model.name
+          , value model.input
+          , name model.name
+          , autofocus True
+          , on "input" targetValue (Signal.message address << UpdateInput)
+          , onKey keys address
+          ]
+          []
+      , div
+          []
+          [ text <| "Debug input: " ++ model.input
+          , br [] []
+          , text <| " value:" ++ model.value
+          ]
       ]
+
+
 
 -- Action
 
-type Action 
-  = NoOp 
+
+type Action
+  = NoOp
   | UpdateInput String
   | Latch
   | Reset
@@ -88,7 +115,14 @@ type Action
 update : Action -> Model -> Model
 update action model =
   case action of
-    NoOp -> model
-    UpdateInput s -> { model | input = s }
-    Latch -> { model | value = model.input }
-    Reset -> { model | input = model.value }
+    NoOp ->
+      model
+
+    UpdateInput s ->
+      { model | input = s }
+
+    Latch ->
+      { model | value = model.input }
+
+    Reset ->
+      { model | input = model.value }
