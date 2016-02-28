@@ -50,8 +50,17 @@ type Action
 update : Action -> Model -> Model
 update action model =
   case action of
-    NoOp -> model
-    Create act -> { model | placeholder = Res.update act model.placeholder }
+    NoOp -> 
+      model
+
+    Create act -> 
+      { model | 
+        placeholder = Res.initModel, 
+        results = model.results ++ 
+          [(model.nextId, Res.update act model.placeholder)],
+        nextId = model.nextId + 1
+      }
+
     Update id act -> 
       let updateResult (resId, result) = 
           if resId == id
