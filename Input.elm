@@ -92,12 +92,6 @@ view address model =
           , onKey keys address
           ]
           []
-      , div
-          []
-          [ text <| "Debug input: " ++ model.input
-          , br [] []
-          , text <| " value:" ++ model.value
-          ]
       ]
 
 

@@ -1,4 +1,4 @@
-module Kashana.Result where
+module Kashana.Result (..) where
 
 import Input
 import Html exposing (..)
@@ -14,30 +14,39 @@ type alias Model =
   }
 
 
-initModel = 
-  { name =  Input.initModel "Name"
-  , description =  Input.initModel "Description"
+initModel =
+  { name = Input.initModel "Name"
+  , description = Input.initModel "Description"
   }
+
 
 
 -- View
 
-view : Address Action -> Model -> Html 
+
+view : Address Action -> Model -> Html
 view address model =
-  div []
-  [ Input.view (Signal.forwardTo address Name) model.name
-  , Input.view (Signal.forwardTo address Description) model.description
-  ]
+  div
+    []
+    [ Input.view (Signal.forwardTo address Name) model.name
+    , Input.view (Signal.forwardTo address Description) model.description
+    ]
+
+
 
 -- Action
 
+
 type Action
-   = Name Input.Action
-   | Description Input.Action
+  = Name Input.Action
+  | Description Input.Action
 
 
 update : Action -> Model -> Model
-update action model = 
+update action model =
   case action of
-    Name act ->        { model | name        = Input.update act model.name }
-    Description act -> { model | description = Input.update act model.description }
+    Name act ->
+      { model | name = Input.update act model.name }
+
+    Description act ->
+      { model | description = Input.update act model.description }

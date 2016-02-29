@@ -109,10 +109,10 @@ includes an implicit invariant that _Results_ in the list always have an `id`;
 only the placeholder has `Nothing`.  
 
 But Elm doesn't know about that invariant.  And it checks my case statements at
-compile time and complains if I haven't handled all the options as defined by
-union types. Which means I can't simply ignore the `Nothing` case of `id: Maybe
-Int` when I know the invariant holds (I don't remember Haskell being that
-strict).  Elm wants me to [banish the
+compile time, and [complains if I haven't handled all the options as defined by
+union types](https://github.com/avh4/elm-format). Which means I can't simply
+ignore the `Nothing` case of `id: Maybe Int` when I know the invariant holds (I
+don't remember Haskell being that strict).  Elm wants me to [banish the
 null](http://elm-lang.org/guide/model-the-problem#banishing-null) `id` from my
 code.  So how might this look if I model the problem in a way that makes my
 invariant explicit? Remove `id` from the _Result_ record and include it only in
@@ -135,4 +135,22 @@ At first I felt this was a bit odd; I'm accustomed to having `id` fields as
 part of my objects but this, I suspect, is mainly due to working with object
 relational mappers which add Integer primary keys to object by default. 
 
+
+----------
+
+So the missing link here is that the app gets a mialbox of Actions
+with an `Address Action` and a `Signal Action`. This is the place to send
+actions when fields get updated. (Remember it would actually be after
+the update at the end of a server round-trip, executed asynchronously).
+
+In [ToDo-Elm](https://github.com/evancz/elm-todomvc/blob/master/Todo.elm)
+they have a simple field for their placeholder, and its enter event
+handler does the creation.
+
+Its more complex for me because I'm essentially simulating asynchronous code,
+_I think_. So I wan to send the message while Im executing the update for Enter
+on a field. Which feels kinda odd.  And, assuming that it lets me get away with
+that. I only want to do the add if Im in the placeholder.  So I need a way to
+parameterise the enter event for Inputs differently for normal ones and the
+placeholder.
 
