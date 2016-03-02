@@ -138,7 +138,7 @@ relational mappers which add Integer primary keys to object by default.
 
 ----------
 
-So the missing link here is that the app gets a mialbox of Actions
+So the missing link here is that the app gets a mailbox of Actions
 with an `Address Action` and a `Signal Action`. This is the place to send
 actions when fields get updated. (Remember it would actually be after
 the update at the end of a server round-trip, executed asynchronously).
@@ -148,9 +148,29 @@ they have a simple field for their placeholder, and its enter event
 handler does the creation.
 
 Its more complex for me because I'm essentially simulating asynchronous code,
-_I think_. So I wan to send the message while Im executing the update for Enter
+_I think_. So I wan to send the message while I'm executing the update for Enter
 on a field. Which feels kinda odd.  And, assuming that it lets me get away with
-that. I only want to do the add if Im in the placeholder.  So I need a way to
+that. I only want to do the add if I'm in the placeholder.  So I need a way to
 parameterise the enter event for Inputs differently for normal ones and the
 placeholder.
 
+Now, confusingly, just as I got ready with my `Task err a`
+head on I found the [Random Gif
+example](https://github.com/evancz/elm-architecture-tutorial/blob/master/examples/5/RandomGif.elm)
+uses
+[Effects](http://package.elm-lang.org/packages/evancz/elm-effects/2.0.1/Effects)
+instead of Tasks.
+This appears to make it easier to work with actions that generate tasks
+because execution of those tasks become side effects. So the recipe becomes:
+
+
+- [x] Convert the whole app to StartApp (not StartApp.Simple)
+
+- [ ] The `onEnter` handler for inputs should be parameterised to allow me to
+  specify what  the side effect is, or more specifically, the side-effect
+  should be: (fake) save the object, on success add to the list and create a
+  new placeholder. On failure highlight as error.
+
+- [ ] Make a fake http request to save the Result that
+  [Sleeps](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Task#sleep)
+  for a second.
