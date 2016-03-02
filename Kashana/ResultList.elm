@@ -1,5 +1,6 @@
 module Kashana.ResultList (..) where
 
+import Effects
 import Html exposing (..)
 import Signal exposing (Address)
 import Kashana.Result as Res
@@ -33,7 +34,7 @@ initModel =
 
 viewResult : Signal.Address Action -> ( ID, Res.Model ) -> Html
 viewResult address ( id, result ) =
-  Res.view (Signal.forwardTo address (Update id)) result
+  Res.view (Signal.forwardTo address (UpdateListItem id)) result
 
 
 view : Address Action -> Model -> Html
@@ -43,7 +44,7 @@ view address model =
       List.map (viewResult address) model.results
 
     placeholder =
-      Res.view (Signal.forwardTo address Create) model.placeholder
+      Res.view (Signal.forwardTo address UpdatePlaceholder) model.placeholder
 
     itemify el =
       li [] [ el ]
@@ -57,31 +58,46 @@ view address model =
 
 type Action
   = NoOp
-  | Update Int Res.Action
-  | Create Res.Action
+  | UpdateListItem Int Res.Action
+  | UpdatePlaceholder Res.Action
 
 
-update : Action -> Model -> Model
-update action model =
-  case action of
+update : Action -> Model -> ( Model, Effects.Effects Action )
+update act model =
+  case act of
     NoOp ->
-      model
+      ( model, Effects.none )
 
-    Create act ->
-      { model
-        | placeholder = Res.initModel
-        , results =
-            model.results
-              ++ [ ( model.nextId, Res.update act model.placeholder ) ]
-        , nextId = model.nextId + 1
-      }
+    UpdatePlaceholder act ->
+      let
+        ( placeholder', effects ) =
+          Res.update act model.placeholder
+      in
+        ( { model
+            | placeholder = Res.initModel
+            , results =
+                model.results ++ [ ( model.nextId, placeholder' ) ]
+            , nextId = model.nextId + 1
+          }
+        , Effects.map UpdatePlaceholder effects
+        )
 
-    Update id act ->
+    UpdateListItem id act ->
       let
         updateResult ( resId, result ) =
           if resId == id then
-            ( resId, Res.update act result )
+            let
+              ( result', effects ) =
+                Res.update act result
+            in
+              ( ( resId, result' ), effects )
           else
-            ( resId, result )
+            ( ( resId, result ), Effects.none )
+
+        -- This Effects marshalling is unsatisfactory, is there a neater way to do it via a mailbox?
+        ( results'', effectsList ) =
+          List.unzip (List.map updateResult model.results)
       in
-        { model | results = List.map updateResult model.results }
+        ( { model | results = results'' }
+        , Effects.map (UpdateListItem id) (Effects.batch effectsList)
+        )

@@ -1,5 +1,6 @@
 module Kashana.Result (..) where
 
+import Effects
 import Input
 import Html exposing (..)
 import Signal exposing (Address)
@@ -42,11 +43,15 @@ type Action
   | Description Input.Action
 
 
-update : Action -> Model -> Model
+update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
   case action of
     Name act ->
-      { model | name = Input.update act model.name }
+      ( { model | name = Input.update act model.name }
+      , Effects.none
+      )
 
     Description act ->
-      { model | description = Input.update act model.description }
+      ( { model | description = Input.update act model.description }
+      , Effects.none
+      )

@@ -136,7 +136,7 @@ part of my objects but this, I suspect, is mainly due to working with object
 relational mappers which add Integer primary keys to object by default. 
 
 
-----------
+# Notes
 
 So the missing link here is that the app gets a mailbox of Actions
 with an `Address Action` and a `Signal Action`. This is the place to send
@@ -174,3 +174,22 @@ because execution of those tasks become side effects. So the recipe becomes:
 - [ ] Make a fake http request to save the Result that
   [Sleeps](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Task#sleep)
   for a second.
+
+The "save" step needs to be done at the level of the Result module, not the
+field, because we should send of the whole record to be verified and saved by
+the server. This means we can't atually do it at the input field level at all.
+I'm suspecting:
+
+- [ ] Move knowledge of `(model, events)` down to the Result level with
+  `Events.none`.
+
+- [ ] Add a new action to the Result module for saving the model.
+
+- [ ] Add update option for saving the model that generates an effect with the
+  task to send the JSON to the server. (or in our case, to pause for a
+  second).
+
+- [ ] Pass an event handler (Signal.message???) to the fild, to use on enter,
+  that will send an Action to the address for the Result model to save itself.
+
+Passing effects up from nested model handlers is ghastly. I must be missing something?
