@@ -4,6 +4,7 @@ import Effects
 import Input
 import Html exposing (..)
 import Signal exposing (Address)
+import Task
 
 
 -- Model
@@ -29,8 +30,8 @@ view : Address Action -> Model -> Html
 view address model =
   div
     []
-    [ Input.view (Signal.forwardTo address Name) model.name
-    , Input.view (Signal.forwardTo address Description) model.description
+    [ Input.view (Signal.forwardTo address UpdateName) model.name
+    , Input.view (Signal.forwardTo address UpdateDescription) model.description
     ]
 
 
@@ -39,19 +40,42 @@ view address model =
 
 
 type Action
-  = Name Input.Action
-  | Description Input.Action
+  = UpdateName Input.Action
+  | UpdateDescription Input.Action
+  | Save
+  | NoOp
 
 
-update : Action -> Model -> ( Model, Effects.Effects Action )
-update action model =
-  case action of
-    Name act ->
-      ( { model | name = Input.update act model.name }
-      , Effects.none
-      )
+saveData : Address Action -> Effects.Effects Action
+saveData address =
+  Effects.task <| Task.map (always NoOp) <| Signal.send address Save
 
-    Description act ->
-      ( { model | description = Input.update act model.description }
-      , Effects.none
-      )
+
+update : Address Action -> Action -> Model -> ( Model, Effects.Effects Action )
+update add action model =
+  let
+    effect act =
+      if Input.savesData act then
+        saveData add
+      else
+        Effects.none
+  in
+    case action of
+      NoOp ->
+        ( model, Effects.none )
+
+      UpdateName act ->
+        ( { model | name = Input.update act model.name }
+        , effect act
+        )
+
+      UpdateDescription act ->
+        ( { model | description = Input.update act model.description }
+        , effect act
+        )
+
+      Save ->
+        ( model
+        , Debug.log "Saving..." Effects.none
+          -- sleep 100 and, on success, send a "create" to the list
+        )

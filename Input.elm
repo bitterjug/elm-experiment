@@ -106,6 +106,11 @@ type Action
   | Reset
 
 
+savesData : Action -> Bool
+savesData =
+  (==) Latch
+
+
 update : Action -> Model -> Model
 update action model =
   case action of
