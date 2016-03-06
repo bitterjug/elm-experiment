@@ -177,19 +177,45 @@ because execution of those tasks become side effects. So the recipe becomes:
 
 The "save" step needs to be done at the level of the Result module, not the
 field, because we should send of the whole record to be verified and saved by
-the server. This means we can't atually do it at the input field level at all.
+the server. This means we can't actually do it at the input field level at all.
 I'm suspecting:
 
-- [ ] Move knowledge of `(model, events)` down to the Result level with
+- [x] Move knowledge of `(model, events)` down to the Result level with
   `Events.none`.
 
-- [ ] Add a new action to the Result module for saving the model.
+- [-] Add a new action to the Result module for saving the model.
 
 - [ ] Add update option for saving the model that generates an effect with the
   task to send the JSON to the server. (or in our case, to pause for a
   second).
 
-- [ ] Pass an event handler (Signal.message???) to the fild, to use on enter,
+- [-] Pass an event handler (Signal.message???) to the field, to use on enter,
   that will send an Action to the address for the Result model to save itself.
 
+  In the end didn't do this. All the work is done at Result level
+
 Passing effects up from nested model handlers is ghastly. I must be missing something?
+
+- So we intercept the update at Result level and ask the Input if it's action
+  is one that should cause the data to be saved (i.e. is it a latch). Do this
+  via a function to hide the details of the Action type (After discussing some
+  options at Relevant records)
+
+- [ ] Don't save the model if there's no difference -- i.e. if we just press
+  Enter don't bother doing a save.
+
+- [ ] How do we scale this to work with SartApp at list level?
+
+- [ ] Instead of console log messages, we should style the components to show
+  that the save is taking place. In Kashana this was done at the Input
+  level with a different styling while the save was taking place. Would it
+  make sense to do that at the whole of the Result level or should we only
+  show he field as updating? 
+
+At the moment we execute a NoOp when the (fake) server update returns. In
+the future what I want to do is execute something more meaningful: 
+- use styling to show that the Result is being updated and return to
+  normal style when the (fake) server save request is complete.
+- And in addition, when we do a save to the placeholder Result in the
+  ResultsList app, that's when we should add it to the list and create
+  a new empty placeholder.

@@ -5,6 +5,7 @@ import Input
 import Html exposing (..)
 import Signal exposing (Address)
 import Task
+import Time
 
 
 -- Model
@@ -20,6 +21,10 @@ initModel =
   { name = Input.initModel "Name"
   , description = Input.initModel "Description"
   }
+
+
+init =
+  ( initModel, Effects.none )
 
 
 
@@ -42,40 +47,50 @@ view address model =
 type Action
   = UpdateName Input.Action
   | UpdateDescription Input.Action
-  | Save
   | NoOp
 
 
-saveData : Address Action -> Effects.Effects Action
-saveData address =
-  Effects.task <| Task.map (always NoOp) <| Signal.send address Save
+saveData : Model -> Effects.Effects Action
+saveData model =
+  -- simulate http request with sleep
+  -- needs the whole model which I'm just logging for the moment
+  always
+    (Task.sleep Time.second
+      |> Task.map (always NoOp)
+      |> Effects.task
+    )
+    (Debug.log "saving" model)
 
 
-update : Address Action -> Action -> Model -> ( Model, Effects.Effects Action )
-update add action model =
+update : Action -> Model -> ( Model, Effects.Effects Action )
+update action model =
   let
-    effect act =
+    effect act newModel =
       if Input.savesData act then
-        saveData add
+        saveData newModel
       else
         Effects.none
   in
     case action of
       NoOp ->
-        ( model, Effects.none )
+        Debug.log
+          "NoOp"
+          ( model, Effects.none )
 
       UpdateName act ->
-        ( { model | name = Input.update act model.name }
-        , effect act
-        )
+        let
+          model' =
+            { model | name = Input.update act model.name }
+        in
+          ( model'
+          , effect act model'
+          )
 
       UpdateDescription act ->
-        ( { model | description = Input.update act model.description }
-        , effect act
-        )
-
-      Save ->
-        ( model
-        , Debug.log "Saving..." Effects.none
-          -- sleep 100 and, on success, send a "create" to the list
-        )
+        let
+          model' =
+            { model | description = Input.update act model.description }
+        in
+          ( model'
+          , effect act model'
+          )

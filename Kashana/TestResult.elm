@@ -1,10 +1,25 @@
-import StartApp.Simple as StartApp
+module Main (..) where
+
+import Effects
+import StartApp
+import Task
 import Kashana.Result as Res
 
-main =
-  StartApp.start 
-    { model = Res.initModel
+
+app =
+  StartApp.start
+    { init = Res.init
+    , update = Res.update
     , view = Res.view
-    , update = Res.update 
+    , inputs = []
     }
 
+
+port tasks : Signal (Task.Task Effects.Never ())
+port tasks =
+  -- Signal.map (Debug.log "task")
+  app.tasks
+
+
+main =
+  app.html
