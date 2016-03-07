@@ -64,6 +64,7 @@ type Action
   = NoOp
   | UpdateListItem Int Res.Action
   | UpdatePlaceholder Res.Action
+  | AddNewItem
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
@@ -72,17 +73,21 @@ update act model =
     NoOp ->
       ( model, Effects.none )
 
+    AddNewItem ->
+      ( { model
+          | placeholder = Res.initModel
+          , results = model.results ++ [ ( model.nextId, model.placeholder ) ]
+          , nextId = model.nextId + 1
+        }
+      , Effects.none
+      )
+
     UpdatePlaceholder act ->
       let
         ( placeholder', effects ) =
           Res.update act model.placeholder
       in
-        ( { model
-            | placeholder = Res.initModel
-            , results =
-                model.results ++ [ ( model.nextId, placeholder' ) ]
-            , nextId = model.nextId + 1
-          }
+        ( { model | placeholder = placeholder' }
         , Effects.map UpdatePlaceholder effects
         )
 
