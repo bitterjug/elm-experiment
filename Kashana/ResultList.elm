@@ -28,6 +28,10 @@ initModel =
   }
 
 
+init =
+  ( initModel, Effects.none )
+
+
 
 -- View
 
