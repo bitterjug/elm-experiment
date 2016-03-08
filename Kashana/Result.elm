@@ -47,6 +47,7 @@ view address model =
 type Action
   = UpdateName Input.Action
   | UpdateDescription Input.Action
+  | Saved
   | NoOp
 
 
@@ -56,7 +57,7 @@ saveData model =
   -- needs the whole model which I'm just logging for the moment
   always
     (Task.sleep Time.second
-      |> Task.map (always NoOp)
+      |> Task.map (always Saved)
       |> Effects.task
     )
     (Debug.log "saving" model)
@@ -73,9 +74,7 @@ update action model =
   in
     case action of
       NoOp ->
-        Debug.log
-          "NoOp"
-          ( model, Effects.none )
+        ( model, Effects.none )
 
       UpdateName act ->
         let
@@ -94,3 +93,11 @@ update action model =
           ( model'
           , effect act model'
           )
+
+      Saved ->
+        ( { model
+            | name = Input.update Input.Saved model.name
+            , description = Input.update Input.Saved model.description
+          }
+        , Effects.none
+        )

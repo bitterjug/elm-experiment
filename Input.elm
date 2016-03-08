@@ -13,14 +13,17 @@ import Signal exposing (Address)
 
 type alias Model =
   { name :
-      String
       -- name, used for placeholder
+      String
   , value :
-      String
       -- current stored vale
-  , input :
       String
+  , input :
       -- new value being entered
+      String
+  , saving :
+      -- awaiting server response
+      Bool
   }
 
 
@@ -29,6 +32,7 @@ initModel name =
   { name = name
   , value = ""
   , input = ""
+  , saving = False
   }
 
 
@@ -74,10 +78,12 @@ view address model =
   let
     highlightStyle =
       style
-        <| if model.input == model.value then
-            []
-           else
+        <| if model.saving then
+            [ ( "background-color", "orange" ) ]
+           else if model.input /= model.value then
             [ ( "background-color", "yellow" ) ]
+           else
+            []
   in
     div
       []
@@ -104,6 +110,7 @@ type Action
   | UpdateInput String
   | Latch
   | Reset
+  | Saved
 
 
 savesData : Action -> Bool
@@ -121,7 +128,13 @@ update action model =
       { model | input = s }
 
     Latch ->
-      { model | value = model.input }
+      { model
+        | value = model.input
+        , saving = True
+      }
 
     Reset ->
       { model | input = model.value }
+
+    Saved ->
+      { model | saving = False }

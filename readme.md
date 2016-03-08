@@ -219,3 +219,9 @@ the future what I want to do is execute something more meaningful:
 - And in addition, when we do a save to the placeholder Result in the
   ResultsList app, that's when we should add it to the list and create
   a new empty placeholder.
+
+Now I have separated adding new model to list from updating placeholder we have
+the question of how to get the (placeholder) `Result`'s save Effect to trigger
+`AddNewItem` at ResultList level (without breaking encapsulation).  Perhaps its
+okay to break encapsulation first off so long as we can get it working?
+
