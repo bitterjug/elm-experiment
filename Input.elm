@@ -70,7 +70,7 @@ onKey keymap address =
   on
     "keydown"
     (Json.customDecoder keyCode (keyMatch keymap))
-    (\action -> Signal.message address action)
+    (Signal.message address)
 
 
 view : Address Action -> Model -> Html
