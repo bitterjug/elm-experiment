@@ -225,3 +225,26 @@ the question of how to get the (placeholder) `Result`'s save Effect to trigger
 `AddNewItem` at ResultList level (without breaking encapsulation).  Perhaps its
 okay to break encapsulation first off so long as we can get it working?
 
+
+Maybe this might work. 
+
+What I want to do is package a "message-like" (possibly Message) in the
+ResultList module and pass it to Result -- and maybe on to Input -- to "send"
+when the relevant action takes place. The relevant action is pressing Enter and
+I'm already using
+[`Html.Events.On'](http://package.elm-lang.org/packages/evancz/elm-html/4.0.2/Html-Events#on)
+
+
+        onKey : KeyMap -> Address Action -> Attribute
+        onKey keymap address =
+          on
+            "keydown"
+            (Json.customDecoder keyCode (keyMatch keymap))
+            (\action -> Signal.message address action)
+
+And creating the message in its entirety there and then. Maybe I can pass in
+the `(a -> Message)` function from the higher level, and make it send a more interesting
+message?
+
+
+
