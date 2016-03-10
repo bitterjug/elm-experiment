@@ -1,11 +1,22 @@
 module Kashana.Result (..) where
 
 import Effects
-import Input
+import Components.Input as Input
 import Html exposing (..)
 import Signal exposing (Address)
+import StartApp
 import Task
 import Time
+
+
+testapp =
+  StartApp.start
+    { init = init
+    , update = update
+    , view = view
+    , inputs = []
+    }
+
 
 
 -- Model

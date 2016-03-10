@@ -248,3 +248,13 @@ message?
 
 
 
+And, after thinking about this a lot, I currently think this isn't possible.
+Because although I could change the Action that gets sent by the message, I
+can't see a way to make it send two messages. And I still want to send the
+`Input.Latch` action **as well as** cause a side effect on behalf of a higher
+level module.
+
+So the other option is to turn the side-effect into a `Task ()`  and somehow
+get that to a `port`, but the only way to get it to a port seems to be at the
+top level which puts us back in the realm of side effects and marshalling and
+unpacking them on the way up.

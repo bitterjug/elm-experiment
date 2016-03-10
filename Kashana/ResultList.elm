@@ -3,7 +3,18 @@ module Kashana.ResultList (..) where
 import Effects
 import Html exposing (..)
 import Signal exposing (Address)
+import StartApp
 import Kashana.Result as Res
+
+
+testapp =
+  StartApp.start
+    { init = init
+    , update = update
+    , view = view
+    , inputs = []
+    }
+
 
 
 -- Model

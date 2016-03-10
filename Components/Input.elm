@@ -1,4 +1,4 @@
-module Input (..) where
+module Components.Input (..) where
 
 import Dict
 import Html exposing (..)
