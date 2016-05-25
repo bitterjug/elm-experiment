@@ -1,10 +1,13 @@
-import StartApp.Simple as StartApp
-import Input
+module Main exposing (..)
+
+import Html.App as Html
+import Components.Input as Input
+
 
 main =
-  StartApp.start 
-    { model = Input.initModel "Objective" 
-    , view = Input.view
-    , update = Input.update 
-    }
-
+    Html.program
+        { init = Input.initModel "Objective"
+        , update = Input.update
+        , view = Input.view
+        , subscriptions = \_ -> Sub.none
+        }
