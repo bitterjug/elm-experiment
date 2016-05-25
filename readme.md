@@ -258,3 +258,16 @@ So the other option is to turn the side-effect into a `Task ()`  and somehow
 get that to a `port`, but the only way to get it to a port seems to be at the
 top level which puts us back in the realm of side effects and marshalling and
 unpacking them on the way up.
+
+# Elm 0.17 upgrade
+
+        sudo npm install -g elm
+
+Update elm-package.json thus:
+
+    "dependencies": { },
+    "elm-version": "0.17.0 <= v < 0.18.0"
+
+Start to pull out syntax stuff.
+
+    elm-make Main.elm
