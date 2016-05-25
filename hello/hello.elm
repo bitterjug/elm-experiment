@@ -1,5 +1,7 @@
-import Html exposing ()
+module Main exposing (..) 
 
-main = text "hello world"
+import Html exposing (..)
 
-  
+
+main =
+  text "hello world"
