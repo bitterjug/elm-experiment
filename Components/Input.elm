@@ -1,4 +1,4 @@
-module Components.Input exposing (Model, initModel, view, update)
+module Components.Input exposing (Model, Msg, initModel, view, update)
 
 import Dict
 import Html exposing (..)
@@ -127,6 +127,13 @@ update msg model =
 
 type alias SavesData =
     Bool
+
+
+
+{-
+   update' performs update and also returns an indicator of wheter the action
+   just performed results in the need to save data.
+-}
 
 
 update' : Msg -> Model -> ( Model, SavesData )

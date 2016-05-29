@@ -90,10 +90,10 @@ update msg model =
             model ! []
 
         UpdateName msg' ->
-            { model | name = Input.update msg' model.name |> fst } ! []
+            { model | name = Input.update msg' model.name } ! []
 
         UpdateDescription msg' ->
-            { model | description = Input.update msg' model.description |> fst } ! []
+            { model | description = Input.update msg' model.description } ! []
 
         _ ->
             model ! []
