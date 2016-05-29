@@ -271,3 +271,15 @@ Update elm-package.json thus:
 Start to pull out syntax stuff.
 
     elm-make Main.elm
+
+# More on communicating up the tree
+
+I read somewhere, I think on StackOverflow, that passing messages about to have
+components communicate is an anti-pattern and you're supposed to call update
+recursively if necessary, and also you can have your update function return
+extra stuff if it needs to communicate upwards. This is a great improvement
+over my old solution (a predicate on the message/action type that determines if
+it was the sort that saves data) because now we can have the extra data depend
+on the model state as well as the message. Ideal for savesData because when
+there is no difference between old and new model we don't want to save the data
+unnecessarily.

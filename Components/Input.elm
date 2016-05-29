@@ -1,4 +1,4 @@
-module Components.Input exposing (Model, initModel, view, savesData, update)
+module Components.Input exposing (Model, initModel, view, update)
 
 import Dict
 import Html exposing (..)
@@ -103,29 +103,32 @@ type Msg
     | Saved
 
 
-savesData : Msg -> Bool
-savesData =
-    (==) Latch
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         NoOp ->
-            model ! []
+            model
 
         UpdateInput s ->
-            { model | input = s } ! []
+            { model | input = s }
 
         Latch ->
             { model
                 | value = model.input
                 , saving = True
             }
-                ! []
 
         Reset ->
-            { model | input = model.value } ! []
+            { model | input = model.value }
 
         Saved ->
-            { model | saving = False } ! []
+            { model | saving = False }
+
+
+type alias SavesData =
+    Bool
+
+
+update' : Msg -> Model -> ( Model, SavesData )
+update' msg model =
+    ( update msg model, msg == Latch )

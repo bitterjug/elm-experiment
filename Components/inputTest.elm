@@ -5,9 +5,8 @@ import Components.Input as Input
 
 
 main =
-    Html.program
-        { init = Input.initModel "Objective" ! []
+    Html.beginnerProgram
+        { model = Input.initModel "Objective"
         , update = Input.update
         , view = Input.view
-        , subscriptions = \_ -> Sub.none
         }
