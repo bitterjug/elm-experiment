@@ -1,21 +1,21 @@
-module Kashana.Result (..) where
+module Kashana.Result exposing (..)
 
-import Effects
 import Components.Input as Input
 import Html exposing (..)
-import Signal exposing (Address)
-import StartApp
-import Task
-import Time
+import Html.App as App
 
 
-testapp =
-  StartApp.start
-    { init = init
-    , update = update
-    , view = view
-    , inputs = []
-    }
+--import Task
+--import Time
+
+
+main =
+    App.program
+        { init = initModel ! []
+        , update = update
+        , view = view
+        , subscriptions = \_ -> Sub.none
+        }
 
 
 
@@ -23,92 +23,90 @@ testapp =
 
 
 type alias Model =
-  { name : Input.Model
-  , description : Input.Model
-  }
+    { name : Input.Model
+    , description : Input.Model
+    }
 
 
+initModel : Model
 initModel =
-  { name = Input.initModel "Name"
-  , description = Input.initModel "Description"
-  }
-
-
-init =
-  ( initModel, Effects.none )
+    { name = Input.initModel "Name"
+    , description = Input.initModel "Description"
+    }
 
 
 
 -- View
+-- view : Model -> Html Msg
 
 
-view : Address Action -> Model -> Html
-view address model =
-  div
-    []
-    [ Input.view (Signal.forwardTo address UpdateName) model.name
-    , Input.view (Signal.forwardTo address UpdateDescription) model.description
-    ]
+view model =
+    div []
+        [ App.map UpdateName (Input.view model.name)
+        , App.map UpdateDescription (Input.view model.description)
+        ]
 
 
 
--- Action
+-- Messages
 
 
-type Action
-  = UpdateName Input.Action
-  | UpdateDescription Input.Action
-  | Saved
-  | NoOp
+type Msg
+    = UpdateName Input.Msg
+    | UpdateDescription Input.Msg
+    | Saved
+    | NoOp
 
 
+
+{--
 saveData : Model -> Effects.Effects Action
 saveData model =
-  -- simulate http request with sleep
-  -- needs the whole model which I'm just logging for the moment
-  always
-    (Task.sleep Time.second
-      |> Task.map (always Saved)
-      |> Effects.task
-    )
-    (Debug.log "saving" model)
-
-
-update : Action -> Model -> ( Model, Effects.Effects Action )
-update action model =
-  let
-    effect act newModel =
-      if Input.savesData act then
-        saveData newModel
-      else
-        Effects.none
-  in
-    case action of
-      NoOp ->
-        ( model, Effects.none )
-
-      UpdateName act ->
-        let
-          model' =
-            { model | name = Input.update act model.name }
-        in
-          ( model'
-          , effect act model'
-          )
-
-      UpdateDescription act ->
-        let
-          model' =
-            { model | description = Input.update act model.description }
-        in
-          ( model'
-          , effect act model'
-          )
-
-      Saved ->
-        ( { model
-            | name = Input.update Input.Saved model.name
-            , description = Input.update Input.Saved model.description
-          }
-        , Effects.none
+    -- simulate http request with sleep
+    -- needs the whole model which I'm just logging for the moment
+    always
+        (Task.sleep Time.second
+            |> Task.map (always Saved)
+            |> Effects.task
         )
+        (Debug.log "saving" model)
+
+--}
+-- update : Msg -> Model -> ( Model, Cmd Msg )
+
+
+update msg model =
+    {--
+    let
+        effect act newModel =
+            if Input.savesData act then
+                saveData newModel
+            else
+                Effects.none
+    in
+                --}
+    case msg of
+        NoOp ->
+            model ! []
+
+        UpdateName msg' ->
+            { model | name = Input.update msg' model.name |> fst } ! []
+
+        UpdateDescription msg' ->
+            { model | description = Input.update msg' model.description |> fst } ! []
+
+        _ ->
+            model ! []
+
+
+
+{--
+
+        Saved ->
+            ( { model
+                | name = Input.update Input.Saved model.name
+                , description = Input.update Input.Saved model.description
+              }
+            , Effects.none
+            )
+            --}

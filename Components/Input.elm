@@ -26,17 +26,13 @@ type alias Model =
     }
 
 
-initModel : String -> ( Model, Cmd Msg )
+initModel : String -> Model
 initModel name =
-    let
-        model =
-            { name = name
-            , value = ""
-            , input = ""
-            , saving = False
-            }
-    in
-        ( model, Cmd.none )
+    { name = name
+    , value = ""
+    , input = ""
+    , saving = False
+    }
 
 
 

@@ -6,7 +6,7 @@ import Components.Input as Input
 
 main =
     Html.program
-        { init = Input.initModel "Objective"
+        { init = Input.initModel "Objective" ! []
         , update = Input.update
         , view = Input.view
         , subscriptions = \_ -> Sub.none
