@@ -1,4 +1,4 @@
-module Components.Input exposing (..)
+module Components.Input exposing (Model, initModel, view, savesData, update)
 
 import Dict
 import Html exposing (..)
