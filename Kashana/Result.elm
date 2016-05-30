@@ -57,34 +57,19 @@ type Msg
     | NoOp
 
 
-saveData : Model -> Cmd Msg
-saveData model =
-    -- simulate http request with sleep
-    -- needs the whole model which I'm just logging for the moment
-    let
-        _ =
-            Debug.log "saving" model
-    in
-        Process.sleep Time.second
-            |> Task.perform (always NoOp) (always Saved)
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        updateField : (Model -> Input.Model) -> Input.Msg -> ( Input.Model, Cmd Msg )
-        updateField getter msg =
+        saveData : Cmd Msg
+        saveData =
+            -- simulate http request with sleep
+            -- needs the whole model which I'm just logging for the moment
             let
-                ( value, savesData ) =
-                    Input.update' msg (getter model)
-
-                cmd =
-                    if savesData then
-                        saveData model
-                    else
-                        Cmd.none
+                _ =
+                    Debug.log "saving" model
             in
-                ( value, cmd )
+                Process.sleep Time.second
+                    |> Task.perform (always NoOp) (always Saved)
     in
         case msg of
             NoOp ->
@@ -93,14 +78,14 @@ update msg model =
             UpdateName msg' ->
                 let
                     ( name', cmd ) =
-                        updateField .name msg'
+                        Input.update' saveData msg' model.name
                 in
                     ( { model | name = name' }, cmd )
 
             UpdateDescription msg' ->
                 let
                     ( description', cmd ) =
-                        updateField .description msg'
+                        Input.update' saveData msg' model.description
                 in
                     ( { model | description = description' }, cmd )
 
