@@ -1,11 +1,11 @@
 module Kashana.Result exposing (..)
 
-import Components.Input as Input
 import Html exposing (..)
 import Html.App as App
+import Process
 import Task
 import Time
-import Process
+import Components.Input as Input
 
 
 main =
@@ -36,9 +36,9 @@ initModel =
 
 
 -- View
--- view : Model -> Html Msg
 
 
+view : Model -> Html Msg
 view model =
     div []
         [ App.map UpdateName (Input.view model.name)
@@ -60,8 +60,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        saveData : Cmd Msg
-        saveData =
+        saveResult : Cmd Msg
+        saveResult =
             -- simulate http request with sleep
             -- needs the whole model which I'm just logging for the moment
             let
@@ -78,14 +78,14 @@ update msg model =
             UpdateName msg' ->
                 let
                     ( name', cmd ) =
-                        Input.update' saveData msg' model.name
+                        Input.update' saveResult msg' model.name
                 in
                     ( { model | name = name' }, cmd )
 
             UpdateDescription msg' ->
                 let
                     ( description', cmd ) =
-                        Input.update' saveData msg' model.description
+                        Input.update' saveResult msg' model.description
                 in
                     ( { model | description = description' }, cmd )
 

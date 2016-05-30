@@ -1,19 +1,17 @@
-module Kashana.ResultList (..) where
+module Kashana.ResultList exposing (..)
 
-import Effects
 import Html exposing (..)
-import Signal exposing (Address)
-import StartApp
+import Html.App as App
 import Kashana.Result as Res
 
 
-testapp =
-  StartApp.start
-    { init = init
-    , update = update
-    , view = view
-    , inputs = []
-    }
+main =
+    App.program
+        { init = initModel ! []
+        , update = update
+        , view = view
+        , subscriptions = \_ -> Sub.none
+        }
 
 
 
@@ -21,106 +19,99 @@ testapp =
 
 
 type alias ID =
-  Int
+    Int
 
 
 type alias Model =
-  { results : List ( ID, Res.Model )
-  , placeholder : Res.Model
-  , nextId : ID
-  }
+    { results : List ( ID, Res.Model )
+    , placeholder : Res.Model
+    , nextId : ID
+    }
 
 
 initModel : Model
 initModel =
-  { results = []
-  , placeholder = Res.initModel
-  , nextId = 1
-  }
-
-
-init =
-  ( initModel, Effects.none )
+    { results = []
+    , placeholder = Res.initModel
+    , nextId = 1
+    }
 
 
 
 -- View
 
 
-viewResult : Signal.Address Action -> ( ID, Res.Model ) -> Html
-viewResult address ( id, result ) =
-  Res.view (Signal.forwardTo address (UpdateListItem id)) result
+view : Model -> Html Msg
+view model =
+    let
+        viewResult : ( ID, Res.Model ) -> Html Msg
+        viewResult ( id, result ) =
+            App.map (UpdateListItem id) (Res.view result)
+
+        results =
+            List.map viewResult model.results
+
+        placeholder =
+            App.map UpdatePlaceholder (Res.view model.placeholder)
+
+        itemify el =
+            li [] [ el ]
+    in
+        ul [] (List.map itemify <| results ++ [ placeholder ])
 
 
-view : Address Action -> Model -> Html
-view address model =
-  let
-    results =
-      List.map (viewResult address) model.results
 
-    placeholder =
-      Res.view (Signal.forwardTo address UpdatePlaceholder) model.placeholder
-
-    itemify el =
-      li [] [ el ]
-  in
-    ul [] (List.map itemify <| results ++ [ placeholder ])
+-- Messages
 
 
-
--- Action
-
-
-type Action
-  = NoOp
-  | UpdateListItem Int Res.Action
-  | UpdatePlaceholder Res.Action
+type Msg
+    = NoOp
+    | UpdateListItem Int Res.Msg
+    | UpdatePlaceholder Res.Msg
 
 
-update : Action -> Model -> ( Model, Effects.Effects Action )
-update act model =
-  case act of
-    NoOp ->
-      ( model, Effects.none )
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        NoOp ->
+            model ! []
 
-    UpdatePlaceholder act ->
-      let
-        ( placeholder', effects ) =
-          Res.update act model.placeholder
-
-        effects' =
-          Effects.map UpdatePlaceholder effects
-      in
-        if act == Res.Saved then
-          -- add new list item
-          ( { model
-              | placeholder = Res.initModel
-              , results = model.results ++ [ ( model.nextId, placeholder' ) ]
-              , nextId = model.nextId + 1
-            }
-          , effects'
-          )
-        else
-          ( { model | placeholder = placeholder' }
-          , effects'
-          )
-
-    UpdateListItem id act ->
-      let
-        updateResult ( resId, result ) =
-          if resId == id then
+        UpdatePlaceholder msg' ->
             let
-              ( result', effects ) =
-                Res.update act result
-            in
-              ( ( resId, result' ), effects )
-          else
-            ( ( resId, result ), Effects.none )
+                ( placeholder', cmd ) =
+                    Res.update msg' model.placeholder
 
-        -- This Effects marshalling is unsatisfactory, is there a neater way to do it via a mailbox?
-        ( results'', effectsList ) =
-          List.unzip (List.map updateResult model.results)
-      in
-        ( { model | results = results'' }
-        , Effects.map (UpdateListItem id) (Effects.batch effectsList)
-        )
+                cmd' =
+                    Cmd.map UpdatePlaceholder cmd
+            in
+                if msg' == Res.Saved then
+                    -- add new list itme
+                    ( { model
+                        | results =
+                            model.results ++ [ ( model.nextId, placeholder' ) ]
+                        , placeholder = Res.initModel
+                        , nextId = model.nextId + 1
+                      }
+                    , cmd'
+                    )
+                else
+                    ( { model | placeholder = placeholder' }, cmd' )
+
+        UpdateListItem id msg' ->
+            let
+                updateResult ( id', result ) =
+                    if id' == id then
+                        let
+                            ( result', cmd ) =
+                                Res.update msg' result
+                        in
+                            ( ( id', result' ), cmd )
+                    else
+                        ( ( id', result ), Cmd.none )
+
+                ( results'', cmds ) =
+                    List.unzip (List.map updateResult model.results)
+            in
+                ( { model | results = results'' }
+                , Cmd.map (UpdateListItem id) (Cmd.batch cmds)
+                )
