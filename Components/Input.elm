@@ -1,4 +1,4 @@
-module Components.Input exposing (Model, Msg, initModel, view, update)
+module Components.Input exposing (Model, Msg, initModel, view, update, update', saved)
 
 import Dict
 import Html exposing (..)
@@ -101,6 +101,11 @@ type Msg
     | Latch
     | Reset
     | Saved
+
+
+saved : Model -> Model
+saved model =
+    update Saved model
 
 
 update : Msg -> Model -> Model

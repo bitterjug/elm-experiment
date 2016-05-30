@@ -3,10 +3,9 @@ module Kashana.Result exposing (..)
 import Components.Input as Input
 import Html exposing (..)
 import Html.App as App
-
-
---import Task
---import Time
+import Task
+import Time
+import Process
 
 
 main =
@@ -58,55 +57,53 @@ type Msg
     | NoOp
 
 
-
-{--
-saveData : Model -> Effects.Effects Action
+saveData : Model -> Cmd Msg
 saveData model =
     -- simulate http request with sleep
     -- needs the whole model which I'm just logging for the moment
-    always
-        (Task.sleep Time.second
-            |> Task.map (always Saved)
-            |> Effects.task
-        )
-        (Debug.log "saving" model)
-
---}
--- update : Msg -> Model -> ( Model, Cmd Msg )
-
-
-update msg model =
-    {--
     let
-        effect act newModel =
-            if Input.savesData act then
-                saveData newModel
-            else
-                Effects.none
+        _ =
+            Debug.log "saving" model
     in
-                --}
+        Process.sleep Time.second
+            |> Task.perform (always NoOp) (always Saved)
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         NoOp ->
             model ! []
 
         UpdateName msg' ->
-            { model | name = Input.update msg' model.name } ! []
+            let
+                ( name', savesData ) =
+                    Input.update' msg' model.name
+
+                cmd =
+                    if savesData then
+                        saveData model
+                    else
+                        Cmd.none
+            in
+                ( { model | name = name' }, cmd )
 
         UpdateDescription msg' ->
-            { model | description = Input.update msg' model.description } ! []
+            let
+                ( description', savesData ) =
+                    Input.update' msg' model.description
 
-        _ ->
-            model ! []
-
-
-
-{--
+                cmd =
+                    if savesData then
+                        saveData model
+                    else
+                        Cmd.none
+            in
+                ( { model | description = description' }, cmd )
 
         Saved ->
-            ( { model
-                | name = Input.update Input.Saved model.name
-                , description = Input.update Input.Saved model.description
-              }
-            , Effects.none
-            )
-            --}
+            { model
+                | name = Input.saved model.name
+                , description = Input.saved model.description
+            }
+                ! []
