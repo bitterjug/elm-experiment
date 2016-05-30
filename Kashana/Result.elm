@@ -71,14 +71,12 @@ saveData model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        NoOp ->
-            model ! []
-
-        UpdateName msg' ->
+    let
+        updateField : (Model -> Input.Model) -> Input.Msg -> ( Input.Model, Cmd Msg )
+        updateField getter msg =
             let
-                ( name', savesData ) =
-                    Input.update' msg' model.name
+                ( value, savesData ) =
+                    Input.update' msg (getter model)
 
                 cmd =
                     if savesData then
@@ -86,24 +84,29 @@ update msg model =
                     else
                         Cmd.none
             in
-                ( { model | name = name' }, cmd )
+                ( value, cmd )
+    in
+        case msg of
+            NoOp ->
+                model ! []
 
-        UpdateDescription msg' ->
-            let
-                ( description', savesData ) =
-                    Input.update' msg' model.description
+            UpdateName msg' ->
+                let
+                    ( name', cmd ) =
+                        updateField .name msg'
+                in
+                    ( { model | name = name' }, cmd )
 
-                cmd =
-                    if savesData then
-                        saveData model
-                    else
-                        Cmd.none
-            in
-                ( { model | description = description' }, cmd )
+            UpdateDescription msg' ->
+                let
+                    ( description', cmd ) =
+                        updateField .description msg'
+                in
+                    ( { model | description = description' }, cmd )
 
-        Saved ->
-            { model
-                | name = Input.saved model.name
-                , description = Input.saved model.description
-            }
-                ! []
+            Saved ->
+                { model
+                    | name = Input.saved model.name
+                    , description = Input.saved model.description
+                }
+                    ! []
