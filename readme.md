@@ -171,7 +171,7 @@ because execution of those tasks become side effects. So the recipe becomes:
   should be: (fake) save the object, on success add to the list and create a
   new placeholder. On failure highlight as error.
 
-- [ ] Make a fake http request to save the Result that
+- [x] Make a fake http request to save the Result that
   [Sleeps](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Task#sleep)
   for a second.
 
@@ -185,7 +185,7 @@ I'm suspecting:
 
 - [-] Add a new action to the Result module for saving the model.
 
-- [ ] Add update option for saving the model that generates an effect with the
+- [-] Add update option for saving the model that generates an effect with the
   task to send the JSON to the server. (or in our case, to pause for a
   second).
 
@@ -194,7 +194,7 @@ I'm suspecting:
 
   In the end didn't do this. All the work is done at Result level
 
-Passing effects up from nested model handlers is ghastly. I must be missing something?
+Passing effects up from nested model handlers is ghastly . I must be missing something?
 
 - So we intercept the update at Result level and ask the Input if it's action
   is one that should cause the data to be saved (i.e. is it a latch). Do this
