@@ -71,6 +71,20 @@ update msg model =
             in
                 Process.sleep Time.second
                     |> Task.perform (always NoOp) (always Saved)
+
+        updateField : Input.Msg -> Input.Model -> ( Input.Model, Cmd Msg )
+        updateField msg field =
+            -- Update a field and, if its stored value changed, save the Result
+            let
+                field' =
+                    Input.update msg field
+            in
+                ( field'
+                , if field'.value /= field.value then
+                    saveResult
+                  else
+                    Cmd.none
+                )
     in
         case msg of
             NoOp ->
@@ -79,16 +93,16 @@ update msg model =
             UpdateName msg' ->
                 let
                     ( name', cmd ) =
-                        Input.update' saveResult msg' model.name
+                        updateField msg' model.name
                 in
-                    ( { model | name = name' }, cmd ? Cmd.none )
+                    ( { model | name = name' }, cmd )
 
             UpdateDescription msg' ->
                 let
                     ( description', cmd ) =
-                        Input.update' saveResult msg' model.description
+                        updateField msg' model.description
                 in
-                    ( { model | description = description' }, cmd ? Cmd.none )
+                    ( { model | description = description' }, cmd )
 
             Saved ->
                 { model

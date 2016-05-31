@@ -1,4 +1,4 @@
-module Components.Input exposing (Model, Msg, initModel, view, update, update', saved)
+module Components.Input exposing (Model, Msg, initModel, view, update, saved)
 
 import Dict
 import Html exposing (..)
@@ -12,17 +12,17 @@ import Json.Decode as Json
 
 type alias Model =
     { name :
+        String
         -- name, used for placeholder
-        String
     , value :
-        -- current stored vale
         String
+        -- current stored value
     , input :
-        -- new value being entered
         String
+        -- new value being entered
     , saving :
-        -- awaiting server response
         Bool
+        -- awaiting server response
     }
 
 
@@ -132,21 +132,3 @@ update msg model =
 
 type alias SavesData =
     Bool
-
-
-
-{-
-   `update'` performs update and also returns a value your supply (e.g.
-   a message to use)  when the action suggests that data should be
-   saved.
--}
-
-
-update' : a -> Msg -> Model -> ( Model, Maybe a )
-update' save msg model =
-    ( update msg model
-    , if msg == Latch then
-        Just save
-      else
-        Nothing
-    )
