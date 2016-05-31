@@ -2,7 +2,6 @@ module Kashana.Result exposing (..)
 
 import Html exposing (..)
 import Html.App as App
-import Maybe.Extra exposing ((?))
 import Process
 import Task
 import Time
