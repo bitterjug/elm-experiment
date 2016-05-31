@@ -5,8 +5,8 @@ vim: ft=ghmarkdown  spell
 
 ## The input widget
 
-In `io.elm` is a text field with Enter (save) and Cancel (reset) actions,
-inspired by what we used on Kashana.
+In `Components/Input.elm` is a text field with Enter (save) 
+and Cancel (reset) actions, inspired by what we used on Kashana.
 
 Other stuff we had in Kashana include:
 
@@ -194,12 +194,74 @@ I'm suspecting:
 
   In the end didn't do this. All the work is done at Result level
 
-Passing effects up from nested model handlers is ghastly . I must be missing something?
+Passing effects up from nested model handlers is ghastly. I must be missing something?
 
-- So we intercept the update at Result level and ask the Input if it's action
-  is one that should cause the data to be saved (i.e. is it a latch). Do this
-  via a function to hide the details of the Action type (After discussing some
-  options at Relevant records)
+- [-] So we intercept the update at Result level and ask the Input if it's
+  action is one that should cause the data to be saved (i.e. is it a latch). Do
+  this via a function to hide the details of the Action type (After discussing
+  some options at Relevant records)
+
+  Did do this fora bit, then spotted a better solution on line and implemented
+  during the 0.17 rewrite: pass the information back from update (or a special
+  variant of update which for the moment I call `update'`). This started out
+  as a boolean which tells the client whether the update is the kind that
+  might save data. Then I refactored that to return the client-level `Cmd Msg`
+  to trigger. This sounds like it would break modularity because Result has to
+  know about it's client's `Msg` type. But, it doesn't. The special version of
+  update has following type:
+
+    update' : Cmd a -> Msg -> Model -> ( Model, Cmd a )
+    update' saveCmd msg model =
+        let
+            cmd' =
+                if msg == Latch then
+                    saveCmd
+                else
+                    Cmd.none
+        in
+            ( update msg model, cmd' )
+
+  And internally it invokes the normal update and then checks whether the
+  state change ought to be followed by a save. The first parameter is the
+  `saveCmd` to return if we ought to save. Its declared type is `Cmd a`; that
+  type parameter a stands for the client's Msg type, so Input 
+  knows precisely nothing about it. And if it's not time to save, it returns
+  `Cmd.none` which also has type `Cmd a`. 
+
+  This is still a bit specific: it only makes sense if the appropriate handling
+  for for the client is to generate a particular Msg. A more general version
+  might look like this:
+  
+
+    update' : a -> Msg -> Model -> ( Model,  Maybe a)
+    update' saving msg model =
+          ( update msg model, 
+                if msg == Latch then
+                    Just saving
+                else
+                    Nothing )
+
+
+  Benefits: 
+   - Removes the assumption that the returned value will be a command.
+   - Moves specification of the default value to the client.
+
+   - less confusing  because it doesn't resemble the classic Elm Architecture
+     version of update which would return  `( model, Cmd Input.Msg)` -- 
+
+
+  The client code has to be a little different, and specify the default using
+  our new favourite Maybe pattern:
+
+          UpdateName imsg ->
+              let
+                  ( name', cmd ) ) =
+                      Input.update' saveResult imsg model.name
+              in
+                  ( { model | name = name' }, cmd ? Cmd.none )
+
+  I was wary about using `Maybe.withDefault` for this, but with the `?`
+  operator its quite terse and clear.
 
 - [ ] Don't save the model if there's no difference -- i.e. if we just press
   Enter don't bother doing a save.

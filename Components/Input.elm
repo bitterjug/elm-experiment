@@ -136,24 +136,17 @@ type alias SavesData =
 
 
 {-
-   `update'` performs update and also returns the command you provide to save
-   data  if we need to save, or no command otherwise.
-
-   This is NOT THE SAME as returning a Cmd Msg because Msg is my local set of
-     messages and doesn't include any handling for save events, etc. The client
-     has to design that, its not my busiess. So this solution is generic
-     w.r.t. message type and lets you proide a save-handler, with it retrns
-     when appropriate, or Cmd.none which is generic.
+   `update'` performs update and also returns a value your supply (e.g.
+   a message to use)  when the action suggests that data should be
+   saved.
 -}
 
 
-update' : Cmd a -> Msg -> Model -> ( Model, Cmd a )
-update' saveCmd msg model =
-    let
-        cmd' =
-            if msg == Latch then
-                saveCmd
-            else
-                Cmd.none
-    in
-        ( update msg model, cmd' )
+update' : a -> Msg -> Model -> ( Model, Maybe a )
+update' save msg model =
+    ( update msg model
+    , if msg == Latch then
+        Just save
+      else
+        Nothing
+    )

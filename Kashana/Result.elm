@@ -2,6 +2,7 @@ module Kashana.Result exposing (..)
 
 import Html exposing (..)
 import Html.App as App
+import Maybe.Extra exposing ((?))
 import Process
 import Task
 import Time
@@ -80,14 +81,14 @@ update msg model =
                     ( name', cmd ) =
                         Input.update' saveResult msg' model.name
                 in
-                    ( { model | name = name' }, cmd )
+                    ( { model | name = name' }, cmd ? Cmd.none )
 
             UpdateDescription msg' ->
                 let
                     ( description', cmd ) =
                         Input.update' saveResult msg' model.description
                 in
-                    ( { model | description = description' }, cmd )
+                    ( { model | description = description' }, cmd ? Cmd.none )
 
             Saved ->
                 { model
