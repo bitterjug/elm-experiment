@@ -166,10 +166,14 @@ because execution of those tasks become side effects. So the recipe becomes:
 
 - [x] Convert the whole app to StartApp (not StartApp.Simple)
 
-- [ ] The `onEnter` handler for inputs should be parameterised to allow me to
+- [-] The `onEnter` handler for inputs should be parameterised to allow me to
   specify what  the side effect is, or more specifically, the side-effect
   should be: (fake) save the object, on success add to the list and create a
   new placeholder. On failure highlight as error.
+
+  We don't do this. OnEnter just triggers plain old Latch, which updates the
+  value as it should. And in the client, we can test whether the value has 
+  changed.
 
 - [x] Make a fake http request to save the Result that
   [Sleeps](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Task#sleep)
@@ -263,16 +267,41 @@ Passing effects up from nested model handlers is ghastly. I must be missing some
   I was wary about using `Maybe.withDefault` for this, but with the `?`
   operator its quite terse and clear.
 
-- [ ] Don't save the model if there's no difference -- i.e. if we just press
+- [x] Don't save the model if there's no difference -- i.e. if we just press
   Enter don't bother doing a save.
 
-- [ ] How do we scale this to work with SartApp at list level?
+  This was the charm. In the end there is no reason to be looking at the
+  message type at Input level to decide whether to save. Its enough to look for
+  a change in Input.Model.value which it is perfectly reasonable for the Result
+  to do. So that's what we do. No more cross-module difficulty to deal with.
+  The Result (client) contains all the logic about when to save a result and
+  Input is purely an input again, and knows nothing about the need to treat
+  some of its events differently. Hep Presto.
 
-- [ ] Instead of console log messages, we should style the components to show
+
+- [x] How do we scale this to work with SartApp at list level?
+
+  Simples
+
+- [x] Instead of console log messages, we should style the components to show
   that the save is taking place. In Kashana this was done at the Input
   level with a different styling while the save was taking place. Would it
   make sense to do that at the whole of the Result level or should we only
   show he field as updating? 
+
+- [ ] As of today there is  a glitch in the colouring: we don't reset the
+  colour when we press enter and there's no change to the value. There is still
+  some logic in Input that refers to the concept of being saved. I think this
+  is in the wrong place and we should pull it out. IT belongs in the Result
+  object. When a result is being saved, actually all its fields are being
+  updated. Perhaps we could make the change with a class at the level of the
+  containing div. But it would be annoying if all the fields became
+  inaccessible during a network round-trip. To make it behave like Kashana
+  only the updated field should change. But we should only make that change
+  when we do a save, not every time we press enter. So the appearance change 
+  should be initiated by the containing Result, not by the Input itself 
+  (as is currently the case, on Enter/Latch).
+
 
 At the moment we execute a NoOp when the (fake) server update returns. In
 the future what I want to do is execute something more meaningful: 
@@ -288,39 +317,6 @@ the question of how to get the (placeholder) `Result`'s save Effect to trigger
 okay to break encapsulation first off so long as we can get it working?
 
 
-Maybe this might work. 
-
-What I want to do is package a "message-like" (possibly Message) in the
-ResultList module and pass it to Result -- and maybe on to Input -- to "send"
-when the relevant action takes place. The relevant action is pressing Enter and
-I'm already using
-[`Html.Events.On'](http://package.elm-lang.org/packages/evancz/elm-html/4.0.2/Html-Events#on)
-
-
-        onKey : KeyMap -> Address Action -> Attribute
-        onKey keymap address =
-          on
-            "keydown"
-            (Json.customDecoder keyCode (keyMatch keymap))
-            (\action -> Signal.message address action)
-
-And creating the message in its entirety there and then. Maybe I can pass in
-the `(a -> Message)` function from the higher level, and make it send a more interesting
-message?
-
-
-
-And, after thinking about this a lot, I currently think this isn't possible.
-Because although I could change the Action that gets sent by the message, I
-can't see a way to make it send two messages. And I still want to send the
-`Input.Latch` action **as well as** cause a side effect on behalf of a higher
-level module.
-
-So the other option is to turn the side-effect into a `Task ()`  and somehow
-get that to a `port`, but the only way to get it to a port seems to be at the
-top level which puts us back in the realm of side effects and marshalling and
-unpacking them on the way up.
-
 # Elm 0.17 upgrade
 
         sudo npm install -g elm
@@ -334,14 +330,3 @@ Start to pull out syntax stuff.
 
     elm-make Main.elm
 
-# More on communicating up the tree
-
-I read somewhere, I think on StackOverflow, that passing messages about to have
-components communicate is an anti-pattern and you're supposed to call update
-recursively if necessary, and also you can have your update function return
-extra stuff if it needs to communicate upwards. This is a great improvement
-over my old solution (a predicate on the message/action type that determines if
-it was the sort that saves data) because now we can have the extra data depend
-on the model state as well as the message. Ideal for savesData because when
-there is no difference between old and new model we don't want to save the data
-unnecessarily.
