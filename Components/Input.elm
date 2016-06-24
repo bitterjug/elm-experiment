@@ -3,7 +3,7 @@ module Components.Input exposing (Model, Msg, initModel, view, update, saved)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on, onInput, keyCode)
+import Html.Events exposing (on, onInput, keyCode, onClick, onBlur)
 import Json.Decode as Json
 
 
@@ -23,6 +23,9 @@ type alias Model =
     , saving :
         Bool
         -- awaiting server response
+    , editing :
+        Bool
+        -- focussed for editing
     }
 
 
@@ -32,6 +35,7 @@ initModel name =
     , value = ""
     , input = ""
     , saving = False
+    , editing = False
     }
 
 
@@ -71,9 +75,21 @@ view model =
                     [ ( "background-color", "yellow" ) ]
                    else
                     []
-    in
-        div []
-            [ input
+
+        display =
+            h2
+                [ highlightStyle
+                , onClick Focus
+                ]
+                [ text
+                    <| if model.value == "" then
+                        model.name
+                       else
+                        model.value
+                ]
+
+        edit =
+            input
                 [ type' "text"
                 , highlightStyle
                 , placeholder model.name
@@ -81,6 +97,7 @@ view model =
                 , autofocus True
                 , name model.name
                 , onInput UpdateInput
+                , onBlur Latch
                 , onKeyDown
                     <| keyMsg
                         [ ( enter, Latch )
@@ -88,7 +105,11 @@ view model =
                         ]
                 ]
                 []
-            ]
+    in
+        if model.editing then
+            edit
+        else
+            display
 
 
 
@@ -101,6 +122,7 @@ type Msg
     | Latch
     | Reset
     | Saved
+    | Focus
 
 
 saved : Model -> Model
@@ -121,13 +143,20 @@ update msg model =
             { model
                 | value = model.input
                 , saving = True
+                , editing = False
             }
 
         Reset ->
-            { model | input = model.value }
+            { model
+                | input = model.value
+                , editing = False
+            }
 
         Saved ->
             { model | saving = False }
+
+        Focus ->
+            { model | editing = True }
 
 
 type alias SavesData =

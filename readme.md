@@ -330,3 +330,25 @@ Start to pull out syntax stuff.
 
     elm-make Main.elm
 
+## Focusing a given field
+
+The todo mvc example uses a port to talk to javascript
+to focus an element. Here's the js
+
+``` javascript
+todomvc.ports.focus.subscribe(function(selector) {
+    setTimeout(function() {
+        var nodes = document.querySelectorAll(selector);
+        if (nodes.length === 1 && document.activeElement !== nodes[0]) {
+            nodes[0].focus();
+        }
+    }, 50);
+});
+```
+
+And here's the elm. The view sets the id attribute on the
+input to "#todo-nn" to make this possible.
+
+    port focus : String -> Cmd msg
+
+    model ! [ focus ("#todo-" ++ toString id) ]
