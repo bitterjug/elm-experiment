@@ -352,3 +352,31 @@ input to "#todo-nn" to make this possible.
     port focus : String -> Cmd msg
 
     model ! [ focus ("#todo-" ++ toString id) ]
+
+This feels unsatisfactory. 
+And [others agree](https://github.com/evancz/elm-architecture-tutorial/issues/49).
+
+[Stack overflow offers a different
+solution](http://stackoverflow.com/questions/31901397/how-to-set-focus-on-an-element-in-elm)
+with more, different, but less arbitrary javascript.
+
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        handleAutofocus(mutation.addedNodes);
+      });
+    });
+    var target = document.querySelector('body > div');
+    var config = { childList: true, subtree: true };
+    observer.observe(target, config);
+
+    function handleAutofocus(nodeList) {
+      for (var i = 0; i < nodeList.length; i++) {
+        var node = nodeList[i];
+        if (node instanceof Element && node.hasAttribute('data-autofocus')) {
+          node.focus();
+          break;
+        } else {
+          handleAutofocus(node.childNodes);
+        }
+      }
+    }
